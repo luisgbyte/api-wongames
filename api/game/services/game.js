@@ -5,8 +5,8 @@
  * to customize this service
  */
 
-const axios = require("axios")
-const slugify = require("slugify")
+const axios = require("axios");
+const slugify = require("slugify");
 
 async function getGameInfo(slug) {
   const jsdom = require("jsdom");
@@ -14,14 +14,29 @@ async function getGameInfo(slug) {
   const body = await axios.get(`https://www.gog.com/game/${slug}`);
   const dom = new JSDOM(body.data);
 
-  const description = dom.window.document.querySelector('.description')
+  const description = dom.window.document.querySelector(".description");
 
   return {
-    rating: 'BR0',
+    rating: "BR0",
     short_description: description.textContent.slice(0, 160),
-    description: description.innerHTML
-  }
+    description: description.innerHTML,
+  };
+}
 
+async function getByName(name, entityName) {
+  const item = await strapi.services[entityName].find({ name });
+  return item.length ? item[0] : null;
+}
+
+async function create(name, entityName) {
+  const item = await getByName(name, entityName)
+
+  if(!item) {
+    return await strapi.services[entityName].create({
+      name,
+      slug: slugify(name, { lower: true })
+    })
+  }
 }
 
 module.exports = {
@@ -33,17 +48,8 @@ module.exports = {
       data: { products },
     } = await axios.get(gogApiUrl);
 
-    console.log(products[0])
-
-   await strapi.services.publisher.create({
-     name: products[0].publisher,
-     slug: slugify(products[0].publisher).toLowerCase(),
-   });
-
-    await strapi.services.developer.create({
-      name: products[0].developer,
-      slug: slugify(products[0].developer).toLowerCase(),
-    });
+    await create(products[1].publisher, "publisher")
+    await create(products[1].developer, "developer")
 
     // console.log(await getGameInfo(products[0].slug));
   },
