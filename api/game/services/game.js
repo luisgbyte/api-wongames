@@ -7,6 +7,7 @@
 
 const axios = require("axios");
 const slugify = require("slugify");
+const qs = require("querystring");
 
 function Exception(e) {
   return { e, data: e.data && e.data.errors && e.data.errors };
@@ -157,7 +158,7 @@ module.exports = {
   populate: async (params) => {
     try {
       console.log("Chamando o serviço populate");
-      const gogApiUrl = `https://www.gog.com/games/ajax/filtered?mediaType=game&page=1&sort=popularity`;
+      const gogApiUrl = `https://www.gog.com/games/ajax/filtered?mediaType=game&${qs.stringify(params)}`;
 
       const {
         data: { products },
